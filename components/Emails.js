@@ -1,91 +1,120 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
-import { FontAwesome5 } from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
 
-export default function Emails() {
-    const [emails, setEmails] = useState([]);
+export default function Emails({ navigation }) {
+  const [emails, setEmails] = useState([]);
 
-    useEffect(function () {
-        async function getData() {
-            const response = await fetch('https://mobile.ect.ufrn.br:3002/emails');
-            const emails = await response.json();
-            setEmails(emails);
-        }
-
-        getData();
-
-    }, []);
-
-    function renderItem({ item }) {
-        return (
-            <View style={styles.email}>
-                <View style={styles.img}>
-                </View>
-                <View style={styles.info}>
-                    <Text style={styles.from}>{item.to}</Text>
-                    <Text style={styles.title}>{item.tittle}</Text>
-                </View>
-                <View style={styles.time}>
-                    <Text>{item.time}</Text>
-                    <FontAwesome5 name="star" size={16} color={item.star ? "yellow" : "black"} />
-                </View>
-            </View>
-        )
+  useEffect(function () {
+    async function getData() {
+      const response = await fetch("https://mobile.ect.ufrn.br:3002/emails");
+      const emails = await response.json();
+      setEmails(emails);
     }
 
+    getData();
+  }, []);
+
+  function renderItem({ item }) {
     return (
-        <View style={styles.emails}>
-            <Text>Caixa de Entrada</Text>
-            <FlatList
-                data={emails}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-                showsVerticalScrollIndicator={false}
-            />
+      <TouchableOpacity
+        style={styles.email}
+        onPress={() => navigation.navigate("Email", { id: item.id })}
+      >
+        <Image
+          style={styles.img}
+          source={{
+            uri: item.picture,
+          }}
+        />
+        <View style={styles.center}>
+          <Text style={styles.from}>
+            {item.from} - {item.tittle}
+          </Text>
+          <Text style={styles.title}>{item.summary}</Text>
         </View>
+        <View style={styles.end}>
+          <Text>{item.time}</Text>
+          <FontAwesome
+            name="star"
+            size={23}
+            color={item.star ? "#facc15" : "#f3f4f6"}
+          />
+        </View>
+      </TouchableOpacity>
     );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.flatList}>
+        <FlatList
+          data={emails}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+    </View>
+  );
 }
 
-const styles = StyleSheet.create({
-    emails: {
-        flex: 1,
-        backgroundColor: '#cecece',
-        padding: 5
-    },
-    email: {
-        flex: 1,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        backgroundColor: '#999',
-        padding: 5,
-        borderRadius: 10,
-        marginVertical: 2,
-        marginHorizontal: 5
-    },
-    img: {
+const borderColor = "#dfe3e7";
 
-        width: 50,
-        height: 50,
-        borderRadius: 10,
-        backgroundColor: '#ffffff'
-    },
-    info: {
-        backgroundColor: '#f0f',
-        flex: 1,
-        paddingHorizontal: 5,
-        marginHorizontal: 5,
-        justifyContent: "space-between",
-    },
-    time: {
-        width: 50,
-        justifyContent: "space-between",
-        alignItems: "flex-end",
-        backgroundColor: '#f0f',
-    },
-    from: {
-        fontSize:18
-    },
-    title:{
-        fontSize: 15
-    }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 15,
+    paddingTop: 0,
+    backgroundColor: "#f3f4f6",
+  },
+  flatList: {
+    backgroundColor: "#ffff",
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor,
+    //paddingVertical: 5,
+  },
+  email: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+  img: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    resizeMode: "contain",
+  },
+  center: {
+    flex: 1,
+    paddingHorizontal: 5,
+    marginHorizontal: 5,
+    justifyContent: "space-between",
+  },
+  end: {
+    width: 50,
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  from: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#282a36",
+  },
+  title: {
+    fontSize: 15,
+  },
 });
