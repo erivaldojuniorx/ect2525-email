@@ -1,11 +1,23 @@
+import React from "react";
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Alert,
+  ToastAndroid,
+  TouchableOpacity,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { WebView } from "react-native-webview";
 import { FontAwesome } from "@expo/vector-icons";
 
 export default function Email({ route }) {
   const { id } = route.params;
   const [email, setEmail] = useState([]);
+  const [star, setStar] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(function () {
     async function getData() {
@@ -13,6 +25,7 @@ export default function Email({ route }) {
         "https://mobile.ect.ufrn.br:3002/emails/" + id
       );
       const email = await response.json();
+      setStar(email.star);
       setEmail(email);
     }
 
@@ -41,13 +54,40 @@ export default function Email({ route }) {
     return html;
   }
 
-  function fakeEmail(name) {
-    if (!name) {
-      return "";
-    }
+  function hStartEmail() {
+    setStar(!star);
+  }
 
-    const userName = name.toLowerCase().replace(" ", ".");
-    return userName + "@email.com";
+  function hDeleteEmail() {
+    Alert.alert("Confirmation", "Delete email?", [
+      {
+        text: "Cancelar",
+      },
+      {
+        text: "Yes",
+        onPress: () => {
+          ToastAndroid.show("Email has been deleted", ToastAndroid.SHORT);
+          navigation.goBack();
+        },
+      },
+    ]);
+  }
+
+  function hArchiveEmail() {
+    ToastAndroid.show("Email has been archived", ToastAndroid.SHORT);
+    navigation.goBack();
+  }
+
+  function hReplyEmail() {
+    navigation.navigate("Reply", {
+      id: email.id,
+      to: email.from,
+      subject: email.tittle,
+    });
+  }
+
+  function hForwardEmail() {
+    navigation.navigate("Forward", { email });
   }
 
   return (
@@ -55,33 +95,56 @@ export default function Email({ route }) {
       <View style={styles.header}>
         <Image style={styles.picture} source={{ uri: email.picture }} />
         <View style={styles.headerCenter}>
-          <Text style={styles.from}>{email.from}</Text>
+          <Text style={styles.from}>from: {email.from}</Text>
+          <Text style={styles.from}>to: {email.to}</Text>
           <Text style={styles.subject}>{email.tittle}</Text>
-          <Text style={styles.subject}>{fakeEmail(email.from)}</Text>
         </View>
         <View style={styles.headerEnd}>
           <Text style={styles.time}>{email.time}</Text>
           <FontAwesome
             name="star"
-            size={25}
-            color={email.star ? "#facc15" : "#f3f4f6"}
+            size={32}
+            color={star ? "#facc15" : "#f3f4f6"}
+            onPress={hStartEmail}
           />
         </View>
       </View>
       <View style={styles.body}>
         <WebView
           originWhitelist={["*"]}
-          source={{ html: htmlTemplate(email?.body) }}
+          source={{ html: htmlTemplate(email.body) }}
         />
+      </View>
+      <View style={styles.footer}>
+        <TouchableOpacity onPress={hDeleteEmail} style={styles.touchableIcon}>
+          <FontAwesome name="trash" {...iconProps} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={hArchiveEmail} style={styles.touchableIcon}>
+          <FontAwesome name="archive" {...iconProps} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={hReplyEmail} style={styles.touchableIcon}>
+          <FontAwesome name="mail-reply" {...iconProps} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={hForwardEmail} style={styles.touchableIcon}>
+          <FontAwesome name="mail-forward" {...iconProps} />
+        </TouchableOpacity>
       </View>
     </View>
   );
 }
 
+const borderColor = "#e5e7eb";
+
+const iconProps = {
+  size: 24,
+  color: "#6b727f",
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 15,
+    paddingBottom: 15,
     backgroundColor: "#f3f4f6",
   },
   header: {
@@ -89,7 +152,7 @@ const styles = StyleSheet.create({
     height: 80,
     backgroundColor: "#ffffff",
     padding: 10,
-    borderColor: "#e5e7eb",
+    borderColor: borderColor,
     borderWidth: 1,
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
@@ -120,7 +183,7 @@ const styles = StyleSheet.create({
   },
   time: {
     color: "#3736a0",
-    fontSize: 18,
+    fontSize: 14,
     backgroundColor: "#e0e8fe",
     borderRadius: 5,
     paddingHorizontal: 5,
@@ -131,6 +194,20 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: borderColor,
+  },
+  footer: {
+    height: 60,
+    backgroundColor: "#ffffff",
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+    borderColor: borderColor,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  touchableIcon: {
+    padding: 18,
   },
 });

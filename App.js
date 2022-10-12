@@ -1,7 +1,10 @@
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Email from "./screens/Email";
 import Inbox from "./screens/Inbox";
+import Reply from "./screens/Reply";
+import Forward from "./screens/Forward";
 
 const Stack = createStackNavigator();
 
@@ -15,11 +18,21 @@ export default function App() {
         <Stack.Screen
           name="Inbox"
           component={Inbox}
-          options={{ title: "Caixa de Entrada", headerStyle, headerTintColor }}
+          options={{ title: "Inbox", headerStyle, headerTintColor }}
         />
         <Stack.Screen
           name="Email"
           component={Email}
+          options={{ title: "", headerStyle, headerTintColor }}
+        />
+        <Stack.Screen
+          name="Reply"
+          component={Reply}
+          options={{ title: "", headerStyle, headerTintColor }}
+        />
+        <Stack.Screen
+          name="Forward"
+          component={Forward}
           options={{ title: "", headerStyle, headerTintColor }}
         />
       </Stack.Navigator>
